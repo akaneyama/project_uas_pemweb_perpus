@@ -15,12 +15,17 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Notifications\Notification;
+use Carbon\Carbon;
 
 class TransaksiResource extends Resource
 {
     protected static ?string $model = Transaksi::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?int $navigationSort = 3;
+    protected static ?string $label = 'Daftar Transaksi';
+    protected static ?string $navigationLabel = 'Transaksi';
+    protected static ?string $navigationGroup = 'Peminjaman';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
     public static function form(Form $form): Form
     {
@@ -29,11 +34,18 @@ class TransaksiResource extends Resource
                 Forms\Components\Select::make('id')
                     ->label('User')
                     ->required()
-                    ->options(User::pluck('name', 'id'))
-                    ->searchable()
+                    ->options(function () {
+                        // Jika role adalah USER, hanya tampilkan dirinya sendiri
+                        if (auth()->user()->role === 'USER') {
+                            return User::where('id', auth()->id())->pluck('name', 'id');
+                        }
+
+                        // Jika role adalah ADMIN, tampilkan semua pengguna
+                        return User::pluck('name', 'id');
+                    })
+                    ->searchable(auth()->user()->role === 'ADMIN')
                     ->placeholder(auth()->user()->role === 'ADMIN' ? 'Pilih user...' : null)
                     ->default(fn () => auth()->id())
-                    ->disabled(fn () => auth()->user()->role === 'USER')
                     ->visible(fn () => auth()->check()),
                 Forms\Components\Select::make('id_buku')
                     ->relationship('buku', 'id_buku')
@@ -43,14 +55,32 @@ class TransaksiResource extends Resource
                     ->required()
                     ->options(function () {
                         return Buku::all()->pluck('nama_buku', 'id_buku');
-                    }),
+                    })
+                    ,
                     Forms\Components\TextInput::make('jumlah_peminjaman')
                     ->numeric()
                     ->required()
                     ->label('Jumlah Peminjaman')
-                    ,
+                    ->afterStateUpdated(function ($state, callable $set, $get) {
+                        $idBuku = $get('id_buku');
+                        $buku = Buku::find($idBuku);
+
+                        if ($buku && $state > $buku->jumlah_buku) {
+
+                            Notification::make()
+                                ->danger()
+                                ->title('Jumlah buku tidak mencukupi')
+                                ->body('Jumlah buku yang tersedia tidak mencukupi.')
+                                ->send();
+
+                            return "Jumlah buku yang tersedia tidak mencukupi.";
+                        }
+
+                        return null;
+                    }),
                 Forms\Components\DatePicker::make('tanggal_transaksi')
-                    ->required(),
+                    ->required()
+                    ->default(Carbon::today()),
                 Forms\Components\DatePicker::make('tanggal_pengembalian')
                     ->required(),
                 Forms\Components\Select::make('status')
@@ -69,7 +99,7 @@ class TransaksiResource extends Resource
         return $table
 
             ->columns([
-                Tables\Columns\TextColumn::make('users.name')
+                Tables\Columns\TextColumn::make('user.name')
                     ->label('Nama')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('buku.nama_buku')

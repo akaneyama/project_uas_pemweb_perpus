@@ -8,6 +8,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
+use Filament\Panel\Concerns\HasBrandName;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
@@ -17,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Auth\Register;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -26,10 +28,12 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandLogo(asset('images\logofix.png'))
+            ->brandLogoHeight('3rem')
             ->login()
-            ->registration()
+            ->registration(Register::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#F39E60'),
             ])
             ->spa()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

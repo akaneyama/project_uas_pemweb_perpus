@@ -16,9 +16,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class BukuResource extends Resource
 {
     protected static ?string $model = Buku::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationIcon = 'heroicon-o-bookmark';
+    protected static ?string $label = 'Daftar Buku';
+    protected static ?string $navigationGroup = 'Kelola';
+    protected static ?string $navigationLabel = 'Buku';
     public static function form(Form $form): Form
     {
         return $form

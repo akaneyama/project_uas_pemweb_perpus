@@ -16,4 +16,9 @@ class EditTransaksi extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+    protected function getRedirectUrl(): string
+    {
+        // Redirect ke halaman list setelah berhasil create
+        return $this->getResource()::getUrl('index');
+    }
 }

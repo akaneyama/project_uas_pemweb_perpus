@@ -14,4 +14,5 @@ class CreateBuku extends CreateRecord
         // Redirect ke halaman list setelah berhasil create
         return $this->getResource()::getUrl('index');
     }
+    
 }

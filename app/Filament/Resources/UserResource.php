@@ -17,7 +17,11 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static ?string $label = 'Daftar User';
+    protected static ?string $navigationLabel = 'Pengguna';
     protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static ?string $navigationGroup = 'Kelola';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -37,7 +41,16 @@ class UserResource extends Resource
                     ->required(fn ($livewire) => $livewire instanceof Pages\CreateUser), // Wajib diisi hanya saat create
                 Forms\Components\Select::make('role')
                 ->options(User::ROLES)
+                ->visible(fn () => auth()->user()->role === 'ADMIN')
                 ,
+                Forms\Components\TextInput::make('number_phone')
+                    ->required()
+                    ->label('nomor telp')
+                    ->numeric()
+                    ->maxLength(20),
+                Forms\Components\TextInput::make('alamat')
+                    ->required()
+                    ->maxLength(255),
             ]);
     }
 
@@ -46,19 +59,31 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                ->searchable(auth()->user()->role === 'ADMIN'),
                 Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('role'),
+                    ->searchable(auth()->user()->role === 'ADMIN'),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable()
+                    ->sortable(auth()->user()->role === 'ADMIN')
+                    ->visible(fn () => auth()->user()->role === 'ADMIN')
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
-                    ->sortable()
+                    ->sortable(auth()->user()->role === 'ADMIN')
+                    ->visible(fn () => auth()->user()->role === 'ADMIN')
                     ->toggleable(isToggledHiddenByDefault: true),
-            ])
+                    Tables\Columns\TextColumn::make('number_phone')
+                    ->sortable()
+                    ->label('Nomor Telepon')
+                    ->searchable(auth()->user()->role === 'ADMIN'),
+                    Tables\Columns\TextColumn::make('alamat')
+                    ->sortable()
+                    ->label('alamat')
+                    ->searchable(auth()->user()->role === 'ADMIN'),
+                    Tables\Columns\TextColumn::make('role')
+                    ->visible(fn () => auth()->user()->role === 'ADMIN'),
+                    ])
             ->filters([
                 //
             ])
