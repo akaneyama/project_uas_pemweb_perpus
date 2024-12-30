@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Notifications\Notification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class TransaksiResource extends Resource
 {
@@ -90,9 +91,24 @@ class TransaksiResource extends Resource
                     ->options([
                         'DIPINJAM' => 'DIPINJAM',
                         'DIKEMBALIKAN' => 'DIKEMBAlIKAN'
-                    ]),
-            ]);
+                    ])
+                    ->afterStateUpdated(function ($state, callable $set, $get) {
+                        // Statusnya telah berubah, model Transaksi akan menangani pengembalian buku
+                        $transaksi = $get('record'); // Ambil data transaksi saat ini
+
+                        if (!$transaksi) {
+
+                            return;
+                        }
+
+                        $transaksi->status = $state; // Update status transaksi
+                        $transaksi->save();
+                    }),
+                ]);
+
+
     }
+
 
     public static function table(Table $table): Table
     {
