@@ -85,7 +85,7 @@ class Transaksi extends Model
 
             // Kirim data ke API
             try {
-                $response = Http::post('http://localhost:3000/api/kirimpesanlaravel', $dataToSend);
+                $response = Http::post('http://localhost:3200/api/kirimpesanlaravel', $dataToSend);
 
                 // Cek apakah request berhasil
                 if ($response->successful()) {
