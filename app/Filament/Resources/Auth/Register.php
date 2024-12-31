@@ -13,9 +13,11 @@ class Register extends AuthRegister{
 
 
             TextInput::make('number_phone')
-            ->label('Nomot Telepon'),
+            ->label('Nomot Telepon')
+            ->required(),
             TextInput::make('alamat')
-            ->label('Alamat'),
+            ->label('Alamat')
+            ->required(),
             $this->getPasswordFormComponent(),
             $this->getPasswordConfirmationFormComponent(),
         ])->statePath('data');

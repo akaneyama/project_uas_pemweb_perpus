@@ -36,18 +36,17 @@ class TransaksiResource extends Resource
                     ->label('User')
                     ->required()
                     ->options(function () {
-                        // Jika role adalah USER, hanya tampilkan dirinya sendiri
                         if (auth()->user()->role === 'USER') {
                             return User::where('id', auth()->id())->pluck('name', 'id');
                         }
 
-                        // Jika role adalah ADMIN, tampilkan semua pengguna
                         return User::pluck('name', 'id');
                     })
                     ->searchable(auth()->user()->role === 'ADMIN')
                     ->placeholder(auth()->user()->role === 'ADMIN' ? 'Pilih user...' : null)
                     ->default(fn () => auth()->id())
-                    ->visible(fn () => auth()->check()),
+                    ->visible(fn () => auth()->check())
+                    ->columnSpan(2),
                 Forms\Components\Select::make('id_buku')
                     ->relationship('buku', 'id_buku')
                     ->searchable()
@@ -86,22 +85,22 @@ class TransaksiResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('status')
                     ->required()
-                    ->default('DIPINJAM')
-                    ->visible(fn () => auth()->user()->role === 'ADMIN')
+                    ->visible(fn () => auth()->user()->role === 'ADMIN' )
+                    ->disabled(request()->is('*/create'))
                     ->options([
                         'DIPINJAM' => 'DIPINJAM',
                         'DIKEMBALIKAN' => 'DIKEMBAlIKAN'
                     ])
+                    ->default('DIPINJAM')
                     ->afterStateUpdated(function ($state, callable $set, $get) {
-                        // Statusnya telah berubah, model Transaksi akan menangani pengembalian buku
-                        $transaksi = $get('record'); // Ambil data transaksi saat ini
+                        $transaksi = $get('record');
 
                         if (!$transaksi) {
 
                             return;
                         }
 
-                        $transaksi->status = $state; // Update status transaksi
+                        $transaksi->status = $state;
                         $transaksi->save();
                     }),
                 ]);

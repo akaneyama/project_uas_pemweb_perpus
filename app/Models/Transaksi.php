@@ -64,6 +64,54 @@ class Transaksi extends Model
 
     protected static function booted()
     {
+        static::saved(function ($transaksi) {
+
+
+            $user = $transaksi->user;
+            $buku = $transaksi->buku;
+
+            // Persiapkan data untuk dikirimkan ke API
+
+                $dataToSend = [
+                    'nama' => $user->name,
+                    'chatId' => $user->number_phone,
+                    'buku' => $buku->nama_buku,
+                    'jumlah_buku' => $transaksi->jumlah_peminjaman,
+                    'status_peminjaman' => $transaksi->status,
+                    'id_trans' => $transaksi->id_trans,
+                    'tanggal_pengembalian' => $transaksi->tanggal_pengembalian
+
+                ];
+
+            // Kirim data ke API
+            try {
+                $response = Http::post('http://localhost:3000/api/kirimpesanlaravel', $dataToSend);
+
+                // Cek apakah request berhasil
+                if ($response->successful()) {
+                    Notification::make()
+                        ->title('Berhasil Mengirim Bukti Invoice')
+                        ->body('Silahkan cek Whatsapp kalian')
+                        //->title('API Request Success')
+                        //->body('Data berhasil dikirim ke API.')
+                        ->success()
+                        ->send();
+                } else {
+                    Notification::make()
+                    ->title('API Request Failed')
+                    ->body('Terjadi kesalahan saat mengirim data ke API: ' . $response->body() )
+                        ->danger()
+                        ->send();
+                }
+            } catch (\Exception $e) {
+                Notification::make()
+                    ->title('Error')
+                    ->body('Terjadi kesalahan: ' . $e->getMessage())
+                    ->danger()
+                    ->send();
+            }
+        });
+
         static::creating(function ($transaksi) {
             $buku = Buku::find($transaksi->id_buku);
 
@@ -73,26 +121,31 @@ class Transaksi extends Model
                 ]);
             }
 
-            // Kurangi jumlah buku saat transaksi dibuat
+
             $buku->jumlah_buku -= $transaksi->jumlah_peminjaman;
             $buku->save();
         });
 
         static::updated(function ($transaksi) {
-            // Tangani perubahan status menjadi DIKEMBALIKAN
+
             if ($transaksi->wasChanged('status') && $transaksi->status === 'DIKEMBALIKAN') {
                 $transaksi->kembalikanBuku();
             }
         });
 
         static::deleting(function ($transaksi) {
-            $buku = Buku::find($transaksi->id_buku);
+            if($transaksi->status !== 'DIKEMBALIKAN'){
+                $buku = Buku::find($transaksi->id_buku);
 
-            if ($buku) {
-                // Kembalikan jumlah buku saat transaksi dihapus
-                $buku->jumlah_buku += $transaksi->jumlah_peminjaman;
-                $buku->save();
+                if ($buku) {
+
+                    $buku->jumlah_buku += $transaksi->jumlah_peminjaman;
+                    $buku->save();
+                }
+
             }
+            return null;
+
         });
     }
 }

@@ -29,6 +29,16 @@ class UserResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->columnSpan(2)
+                    ->maxLength(255),
+
+                    Forms\Components\TextInput::make('number_phone')
+                    ->required()
+                    ->label('nomor telp')
+                    ->numeric()
+                    ->maxLength(20),
+                Forms\Components\TextInput::make('alamat')
+                    ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
                     ->email()
@@ -37,20 +47,14 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->maxLength(255)
-                    ->dehydrated(fn ($state) => filled($state)) // Hanya menyimpan jika ada perubahan
-                    ->required(fn ($livewire) => $livewire instanceof Pages\CreateUser), // Wajib diisi hanya saat create
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn ($livewire) => $livewire instanceof Pages\CreateUser),
                 Forms\Components\Select::make('role')
-                ->options(User::ROLES)
-                ->visible(fn () => auth()->user()->role === 'ADMIN')
-                ,
-                Forms\Components\TextInput::make('number_phone')
-                    ->required()
-                    ->label('nomor telp')
-                    ->numeric()
-                    ->maxLength(20),
-                Forms\Components\TextInput::make('alamat')
-                    ->required()
-                    ->maxLength(255),
+                    ->options(User::ROLES)
+                    ->visible(fn () => auth()->user()->role === 'ADMIN')
+                    ->placeholder('Pilih Role')
+                    ,
+
             ]);
     }
 

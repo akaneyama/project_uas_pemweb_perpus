@@ -27,13 +27,16 @@ class BukuResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('nama_buku')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->columnSpan(2),
                 Forms\Components\TextInput::make('jumlah_buku')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->columnSpan(2),
                 Forms\Components\TextInput::make('deskripsi_buku')
                     ->maxLength(255)
-                    ->required(),
+                    ->required()
+                    ->columnSpan(2),
             ]);
     }
 
